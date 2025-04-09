@@ -1,211 +1,149 @@
 package application;
 
-import javafx.application.Application;
-import javafx.stage.Stage;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.Button;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.geometry.Pos;
 import javafx.geometry.Insets;
-import javafx.geometry.HPos;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-
-import java.util.regex.Matcher;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
+import database.DatabaseConnection;
+import java.sql.*;
 import java.util.regex.Pattern;
 
 public class signup {
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("\\d{10}");
 
     public static void show() {
         Stage signupStage = new Stage();
+        signupStage.setTitle("Sign Up");
 
+        BorderPane mainLayout = new BorderPane();
+        mainLayout.setStyle("-fx-background-color: #F5F5F5;");
         
-        Label titleLabel = new Label("Sign Up");
-        titleLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: white;");
+        StackPane headerPane = new StackPane();
+        Label headerLabel = new Label("SIGN UP");
+        headerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
+        headerLabel.setTextFill(Color.WHITE);
+        headerPane.setStyle("-fx-background-color: #3F51B5; -fx-padding: 30;");
+        headerPane.getChildren().add(headerLabel);
+        mainLayout.setTop(headerPane);
 
-        
-        Label usernameLabel = new Label("Username:");
-        usernameLabel.setStyle("-fx-font-size: 18px;");
+        GridPane grid = new GridPane();
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(25);
+        grid.setVgap(25);
+        grid.setPadding(new Insets(50));
+        grid.setStyle("-fx-background-color: white; -fx-border-color: #B0BEC5; -fx-border-width: 3; -fx-border-radius: 15; -fx-padding: 40;");
+
+        String labelStyle = "-fx-font-size: 20px; -fx-font-weight: bold;";
+        String fieldStyle = "-fx-font-size: 18px; -fx-padding: 12;";
+
+        Label usernameLabel = new Label("USERNAME:");
+        usernameLabel.setStyle(labelStyle);
         TextField usernameField = new TextField();
-        usernameField.setPromptText("Enter your username");
-        usernameField.setMaxWidth(250);
-        usernameField.setStyle("-fx-font-size: 16px;");
+        usernameField.setStyle(fieldStyle);
+        grid.add(usernameLabel, 0, 0);
+        grid.add(usernameField, 1, 0);
 
-        Label firstNameLabel = new Label("First Name:");
-        firstNameLabel.setStyle("-fx-font-size: 18px;");
+        Label firstNameLabel = new Label("FIRST NAME:");
+        firstNameLabel.setStyle(labelStyle);
         TextField firstNameField = new TextField();
-        firstNameField.setPromptText("Enter your first name");
-        firstNameField.setMaxWidth(250); // Increased width
-        firstNameField.setStyle("-fx-font-size: 16px;");
+        firstNameField.setStyle(fieldStyle);
+        grid.add(firstNameLabel, 0, 1);
+        grid.add(firstNameField, 1, 1);
 
-        Label lastNameLabel = new Label("Last Name:");
-        lastNameLabel.setStyle("-fx-font-size: 18px;");
+        Label lastNameLabel = new Label("LAST NAME:");
+        lastNameLabel.setStyle(labelStyle);
         TextField lastNameField = new TextField();
-        lastNameField.setPromptText("Enter your last name");
-        lastNameField.setMaxWidth(250); // Increased width
-        lastNameField.setStyle("-fx-font-size: 16px;");
+        lastNameField.setStyle(fieldStyle);
+        grid.add(lastNameLabel, 0, 2);
+        grid.add(lastNameField, 1, 2);
 
-        Label emailLabel = new Label("Email:");
-        emailLabel.setStyle("-fx-font-size: 18px;");
+        Label emailLabel = new Label("EMAIL:");
+        emailLabel.setStyle(labelStyle);
         TextField emailField = new TextField();
-        emailField.setPromptText("Enter your email");
-        emailField.setMaxWidth(250);
-        emailField.setStyle("-fx-font-size: 16px;");
+        emailField.setStyle(fieldStyle);
+        grid.add(emailLabel, 0, 3);
+        grid.add(emailField, 1, 3);
 
-        Label phoneLabel = new Label("Phone Number:");
-        phoneLabel.setStyle("-fx-font-size: 18px;");
+        Label phoneLabel = new Label("PHONE NUMBER:");
+        phoneLabel.setStyle(labelStyle);
         TextField phoneField = new TextField();
-        phoneField.setPromptText("Enter your phone number");
-        phoneField.setMaxWidth(250);
-        phoneField.setStyle("-fx-font-size: 16px;");
+        phoneField.setStyle(fieldStyle);
+        grid.add(phoneLabel, 0, 4);
+        grid.add(phoneField, 1, 4);
 
-        Label passwordLabel = new Label("Password:");
-        passwordLabel.setStyle("-fx-font-size: 18px;");
+        Label passwordLabel = new Label("PASSWORD:");
+        passwordLabel.setStyle(labelStyle);
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Enter your password");
-        passwordField.setMaxWidth(250);
-        passwordField.setStyle("-fx-font-size: 16px;");
+        passwordField.setStyle(fieldStyle);
+        grid.add(passwordLabel, 0, 5);
+        grid.add(passwordField, 1, 5);
 
-        Label confirmPasswordLabel = new Label("Confirm Password:");
-        confirmPasswordLabel.setStyle("-fx-font-size: 18px;");
+        Label confirmPasswordLabel = new Label("CONFIRM PASSWORD:");
+        confirmPasswordLabel.setStyle(labelStyle);
         PasswordField confirmPasswordField = new PasswordField();
-        confirmPasswordField.setPromptText("Confirm your password");
-        confirmPasswordField.setMaxWidth(250);
-        confirmPasswordField.setStyle("-fx-font-size: 16px;");
+        confirmPasswordField.setStyle(fieldStyle);
+        grid.add(confirmPasswordLabel, 0, 6);
+        grid.add(confirmPasswordField, 1, 6);
 
-        // Create buttons
-        Button registerButton = new Button("Register");
-        registerButton.setPrefWidth(150);
-        registerButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
-        registerButton.setOnAction(e -> {
-            if (usernameField.getText().isEmpty() || firstNameField.getText().isEmpty() ||
-                    lastNameField.getText().isEmpty() || emailField.getText().isEmpty() ||
-                    phoneField.getText().isEmpty() || passwordField.getText().isEmpty() ||
-                    confirmPasswordField.getText().isEmpty()) {
+        Button registerButton = new Button("REGISTER");
+        registerButton.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 15 40; -fx-background-radius: 10;");
 
-                showAlert("Missing Information", "All fields should be filled");
-            } else if (!passwordField.getText().equals(confirmPasswordField.getText())) {
-                showAlert("Password Mismatch", "Passwords do not match");
-            } else if (!isValidEmail(emailField.getText())) {
-                showAlert("Invalid Email", "Please enter a valid email address");
-            } else if (!isValidPhoneNumber(phoneField.getText())) {
-                showAlert("Invalid Phone Number", "Please enter a valid phone number");
-            } else {
-                
-                showAlert("Registration Complete", "You have successfully registered!");
+        Button cancelButton = new Button("CANCEL");
+        cancelButton.setStyle("-fx-background-color: #F44336; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 15 40; -fx-background-radius: 10;");
 
-                
-                signupStage.close();
-            }
-        });
+        HBox buttonBox = new HBox(40, cancelButton, registerButton);
+        buttonBox.setAlignment(Pos.CENTER);
+        grid.add(buttonBox, 1, 7);
 
-        Button cancelButton = new Button("Cancel");
-        cancelButton.setPrefWidth(150);
-        cancelButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px;");
         cancelButton.setOnAction(e -> signupStage.close());
 
-        
-        HBox buttonBox = new HBox(20);
-        buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.setPadding(new Insets(20, 0, 0, 0));
-        buttonBox.getChildren().addAll(registerButton, cancelButton);
+        registerButton.setOnAction(e -> registerUser(
+            usernameField.getText().trim(),
+            firstNameField.getText().trim(),
+            lastNameField.getText().trim(),
+            emailField.getText().trim(),
+            phoneField.getText().trim(),
+            passwordField.getText().trim(),
+            confirmPasswordField.getText().trim(),
+            signupStage
+        ));
 
-        
-        GridPane formGrid = new GridPane();
-        formGrid.setHgap(40); 
-        formGrid.setVgap(15); 
-        formGrid.setAlignment(Pos.CENTER);
-
-       
-        ColumnConstraints column1 = new ColumnConstraints();
-        column1.setPercentWidth(40);  
-        ColumnConstraints column2 = new ColumnConstraints();
-        column2.setPercentWidth(60);  
-        formGrid.getColumnConstraints().addAll(column1, column2);
-
-        // Add fields and labels to the grid
-        formGrid.add(usernameLabel, 0, 0);
-        formGrid.add(usernameField, 1, 0);
-
-        formGrid.add(firstNameLabel, 0, 1);
-        formGrid.add(firstNameField, 1, 1);
-
-        formGrid.add(lastNameLabel, 0, 2);
-        formGrid.add(lastNameField, 1, 2);
-
-        formGrid.add(emailLabel, 0, 3);
-        formGrid.add(emailField, 1, 3);
-
-        formGrid.add(phoneLabel, 0, 4);
-        formGrid.add(phoneField, 1, 4);
-
-        formGrid.add(passwordLabel, 0, 5);
-        formGrid.add(passwordField, 1, 5);
-
-        formGrid.add(confirmPasswordLabel, 0, 6);
-        formGrid.add(confirmPasswordField, 1, 6);
-
-      
-        VBox vbox = new VBox();
-        vbox.setPadding(new Insets(30));
-        vbox.setAlignment(Pos.TOP_CENTER);
-        vbox.setStyle("-fx-background-color: #f5f5f5;");
-
-        
-        HBox headerBox = new HBox();
-        headerBox.setAlignment(Pos.CENTER);
-        headerBox.setPadding(new Insets(0, 0, 20, 0));
-        headerBox.setStyle("-fx-background-color: #3f51b5; -fx-background-radius: 5px;");
-        headerBox.setPrefHeight(70);
-        headerBox.getChildren().add(titleLabel);
-
-        
-        vbox.getChildren().addAll(headerBox, new Spacer(10), formGrid, buttonBox);
-
-        
-        Scene scene = new Scene(vbox, 650, 700);
-
-        
-        signupStage.setTitle("Sign Up Form");
+        mainLayout.setCenter(grid);
+        Scene scene = new Scene(mainLayout, 800, 600);
         signupStage.setScene(scene);
+        signupStage.setMaximized(true);
         signupStage.show();
     }
 
-    
-    private static void showAlert(String header, String content) {
-        Alert alert = new Alert(AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setHeaderText(header);
+    private static void registerUser(String username, String firstName, String lastName, String email, String phone, String password, String confirmPassword, Stage stage) {
+        Connection conn = DatabaseConnection.getInstance().getConnection();
+        try {
+            String query = "INSERT INTO members (username, first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(query);
+            stmt.setString(1, username);
+            stmt.setString(2, firstName);
+            stmt.setString(3, lastName);
+            stmt.setString(4, email);
+            stmt.setString(5, phone);
+            stmt.setString(6, password);
+            stmt.executeUpdate();
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Registration successful!");
+            stage.close();
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to register user: " + e.getMessage());
+        }
+    }
+
+    private static void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-   
-    private static boolean isValidEmail(String email) {
-        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-        Pattern pattern = Pattern.compile(emailRegex);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
-    }
-
-    
-    private static boolean isValidPhoneNumber(String phone) {
-        return phone.matches("\\d{10}"); // Only allows 10 digits 
-    }
-
-    
-    private static class Spacer extends VBox {
-        public Spacer(double height) {
-            super();
-            setMinHeight(height);
-            setPrefHeight(height);
-            setMaxHeight(height);
-        }
     }
 }
