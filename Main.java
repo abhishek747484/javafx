@@ -1,82 +1,136 @@
 package application;
 
+import database.DatabaseConnection;
 import javafx.application.Application;
-import javafx.stage.Stage;
+import javafx.geometry.*;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.Button;
-import javafx.scene.layout.VBox;
-import javafx.geometry.Pos;
-import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.*;
+import java.sql.*;
 
 public class Main extends Application {
-
     @Override
     public void start(Stage primaryStage) {
-        // labels
-        Label titleLabel = new Label("Please Login");
-        titleLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: bold;");
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(40));
+        root.setAlignment(Pos.CENTER);
+        root.setStyle("-fx-background-color: linear-gradient(to bottom right, #34495E, #2ECC71);");
+
+        Label titleLabel = new Label("Welcome! Please Login");
+        titleLabel.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;");
 
         Label usernameLabel = new Label("Username:");
-        usernameLabel.setStyle("-fx-font-size: 16px;");
-
-        Label passwordLabel = new Label("Password:");
-        passwordLabel.setStyle("-fx-font-size: 16px;");
-
-        // input fields
+        usernameLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
         TextField usernameField = new TextField();
         usernameField.setPromptText("Enter your username");
-        usernameField.setMaxWidth(220);
-        usernameField.setStyle("-fx-font-size: 14px;");
+        usernameField.setMaxWidth(250);
 
+        Label passwordLabel = new Label("Password:");
+        passwordLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Enter your password");
-        passwordField.setMaxWidth(220);
-        passwordField.setStyle("-fx-font-size: 14px;");
+        passwordField.setMaxWidth(250);
 
-        // Create login button
         Button loginButton = new Button("Login");
-        loginButton.setPrefWidth(100);
-        loginButton.setOnAction(e -> {
-            if (usernameField.getText().equals("user") && passwordField.getText().equals("user123")) {
-                dashboard dashboardApp = new dashboard();
-                try {
-                    dashboardApp.start(primaryStage);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            } else {
-                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("Invalid Credentials");
-                alert.setContentText("Incorrect username or password");
-                alert.initOwner(primaryStage);
-                alert.showAndWait();
-            }
-        });
+        loginButton.setPrefWidth(120);
+        loginButton.setStyle("-fx-background-color: #1ABC9C; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10px;");
+        loginButton.setOnAction(e -> login(usernameField.getText().trim(), passwordField.getText().trim(), primaryStage));
 
-        // Sign Up button
         Button signUpButton = new Button("Sign Up");
-        signUpButton.setPrefWidth(100);
-        signUpButton.setOnAction(e -> {
-            signup.show();  // Open  screen
-        });
+        signUpButton.setPrefWidth(120);
+        signUpButton.setStyle("-fx-background-color: #F39C12; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 10px;");
+        signUpButton.setOnAction(e -> signup.show());
 
-        // layout
-        VBox vbox = new VBox(20);
-        vbox.setPadding(new Insets(30));
-        vbox.setAlignment(Pos.CENTER);
-        vbox.getChildren().addAll(titleLabel, usernameLabel, usernameField, passwordLabel, passwordField, loginButton, signUpButton);
+        VBox buttonBox = new VBox(10, loginButton, signUpButton);
+        buttonBox.setAlignment(Pos.CENTER);
 
-        //scene
-        Scene scene = new Scene(vbox, 400, 400);
+        root.getChildren().addAll(titleLabel, usernameLabel, usernameField, passwordLabel, passwordField, buttonBox);
 
-        // stage
+        Scene scene = new Scene(root, 450, 450);
         primaryStage.setTitle("Login System");
         primaryStage.setScene(scene);
+        
+        // Maximize the window and still allow minimize, maximize, and close buttons
+        primaryStage.setMaximized(true);
+        
         primaryStage.show();
+    }
+
+    private void login(String username, String password, Stage stage) {
+        if (username.isEmpty() || password.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Error", "Username and password must not be empty.");
+            return;
+        }
+
+        // Check if admin
+        if (isAdminCredentials(username, password)) {
+            try {
+                new admindashboard().start(new Stage());
+                stage.close();
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to open admin dashboard: " + e.getMessage());
+            }
+            return;
+        }
+
+        // Check if regular member
+        if (isValidMemberCredentials(username, password)) {
+            try {
+                new dashboard().start(new Stage());
+                stage.close();
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Error", "Failed to open user dashboard: " + e.getMessage());
+            }
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Error", "Invalid username or password.");
+        }
+    }
+
+    private boolean isAdminCredentials(String username, String password) {
+        String query = "SELECT * FROM admins WHERE admin_username = ? AND admin_password = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to validate admin credentials: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isValidMemberCredentials(String username, String password) {
+        String query = "SELECT * FROM members WHERE username = ? AND password = ?";
+        try (Connection conn = DatabaseConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Database Error", "Failed to validate member credentials: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public void stop() {
+        try {
+            Connection conn = DatabaseConnection.getInstance().getConnection();
+            if (conn != null && !conn.isClosed()) conn.close();
+        } catch (SQLException e) {
+            System.err.println("Error closing database connection: " + e.getMessage());
+        }
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {
